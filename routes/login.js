@@ -29,28 +29,56 @@ router.get('/', function(req, res, next) {
 });
 
 /* post login*/
-router.post('/', function(req, res, next) {
+router.post('/', async function(req, res, next) {
   // res.send('respond with a resource');
   console.log(req.body);
 
   const username= req.body.username;
   const password= req.body.password;
 
-  if(password == "tikabo"){
+  if (username&& password){
 
-    req.session.loggedin = true;
-    req.session.username= username;
-    res.redirect('/topsecret')
+    try{
+      const sql ='SELECT password FROM users WHERE name=?';
+      const result= await query(sql,username);
 
-  }else{
-    res.render(
-      'login',
-       {
-         title:'Schoolsoft',
-         error: 'fel!'
-       }
-    );
+      if(result.length > 0){
+        bcrypt.compare(password, result[0].password, function(err, result) {
+          if (result == true){
+            req.session.loggedin = true;
+            req.session.username= username;
+            res.redirect('/topsecret')       
+          } else{
+            res.render('login', { error: 'bc false  username or password'});
+          }
+        });
+      }else{
+        res.render('login', { error: 'rsest username or password'});
+      }
+    } catch(e){
+      next(e);
+      console.error(e);
+    }
+  } else{
+    res.render('login', { error: 'fel username or password'});
+
   }
+
+  // if(password == "tikabo"){
+
+  //   req.session.loggedin = true;
+  //   req.session.username= username;
+  //   res.redirect('/topsecret')
+
+  // }else{
+  //   res.render(
+  //     'login',
+  //      {
+  //        title:'Schoolsoft',
+  //        error: 'fel!'
+  //      }
+  //   );
+  // }
 
  });
 
