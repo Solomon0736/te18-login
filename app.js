@@ -1,6 +1,6 @@
 
 require('dotenv').config();
-const createError = require('http-errors');
+const createError = require('http-errors'); 
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -10,6 +10,9 @@ const session = require('express-session');
 
 const indexRouter = require('./routes/index');
 const loginRouter = require('./routes/login');
+const homeRouter = require('./routes/home');
+const registerRouter = require('./routes/register');
+
 
 const app = express();
 
@@ -28,7 +31,6 @@ app.use(sassMiddleware({
   sourceMap: true
 }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(session({
   secret: 'secret',
   resave: false,
@@ -37,6 +39,8 @@ app.use(session({
 }))
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
+app.use('/home', homeRouter);
+app.use('/register', registerRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
