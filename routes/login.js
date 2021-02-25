@@ -9,8 +9,10 @@ const Authcontroller = require('../controllers/Authcontroller')
 /* GET users listing. */
 router.get('/',Authcontroller.show);
 router.post('/',
-  body('username').notEmpty().trim(),
+  body('username').notEmpty().trim().toLowerCase(),
   body('password').notEmpty(),
+  body('rememberme').toBoolean(),
+
   Authcontroller.store
 );
 module.exports = router;

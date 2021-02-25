@@ -1,6 +1,5 @@
-
 require('dotenv').config();
-const createError = require('http-errors'); 
+const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -13,10 +12,8 @@ const loginRouter = require('./routes/login');
 const homeRouter = require('./routes/home');
 const registerRouter = require('./routes/register');
 
-
 const app = express();
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
@@ -27,16 +24,17 @@ app.use(cookieParser());
 app.use(sassMiddleware({
   src: path.join(__dirname, 'public'),
   dest: path.join(__dirname, 'public'),
-  indentedSyntax: true, // true = .sass and false = .scss
+  indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'secret',
+  secret: 'S3KuR|T4S', // recommended but wont be set due to http
   resave: false,
   saveUninitialized: true,
-  cookie: {sameSite: true}
-}))
+  cookie: {samesite: true}
+}));
+
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
 app.use('/home', homeRouter);

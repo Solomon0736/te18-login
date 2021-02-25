@@ -1,50 +1,64 @@
 const bcrypt = require('bcrypt');
-const { query} = require('../models/db');
+const { query } = require('../models/db');
 const { body, validationResult } = require('express-validator');
+const { log } = require('debug');
 
-module.exports.show= async function(req,res,next){
-    // loggiken vara att vissalogin form
-    return res.render('login');
+module.exports.show = async function(req, res, next) {
+  if (req.session.loggedin) {
+    return res.redirect('/home');
+  }
+  return res.render('login');
 };
 
-module.exports.destroy= async function(req,res,next){
-    // loggiken vara att vissalogin form
-   req.session.loggedin= false;
-   req.session.destroy();  
-   return res.redirect('/');
-    
+module.exports.destroy = async function(req, res, next) {
+  // logga ut användaren
+  req.session.loggedin = false;
+  req.session.destroy();
+  return res.redirect('/');
 };
-module.exports.store= async function(req,res,next){
-    // logiken att loggin användare
- 
+
+module.exports.store = async function(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.render('login',{errors: errors.array()});
-        //return res.status(400).json({ errors: errors.array() });
+      console.log(errors.array());
+      return res.status(401).render('login',{ username: req.body.username, errors: errors.array()});
     }
-    const username= req.body.username;
-    const password= req.body.password;
-    
-    try{
-        const sql ='SELECT password FROM users WHERE name=?';
-        const result= await query(sql, username);
-    
-        if(result.length > 0){
-            bcrypt.compare(password, result[0].password, function(err, result) {
-            if (result == true){
-                req.session.loggedin = true;
-                req.session.username= username;
-                res.redirect('/home');       
-            } else{
-                res.render('login', { errors: 'bc false  username or password'});
-            }
-            });
-        }else{
-            res.render('login', { errors: 'rsest username or password'});
-        }
-    } catch(e){
-        next(e);
-        console.error(e);
-    }
-} 
+    const username = req.body.username;
+    const password = req.body.password;
+    console.log("Tja!")
 
+    try {
+      const sql = 'SELECT id, password FROM users WHERE name = ?';
+      const user = await query(sql, username);
+      
+
+
+      if(user.length > 0) {
+        bcrypt.compare(password, user[0].password, function(err, result) {
+          if (result == true) {
+            req.session.loggedin = true;
+            req.session.username = username;
+            req.session.id = user[0].id;
+            req.session.username = username;
+
+            if ( req.body.rememberme ) {
+              const hour = 3600000;
+              req.session.cookie.maxAge = 14 * 24 * hour; //2 weeks
+            }
+
+
+            res.redirect('/home');
+          } else {
+            return res.status(401)
+              .render('login',{ username: req.body.username, errors: 'Wrong username or password!'});
+          }
+        });
+      } else {
+        return res.status(401)
+          .render('login',{ username: req.body.username, errors: 'Wrong username or password!'});
+      }
+    } catch (e) {
+      next(e);
+      console.error(e);
+    }
+};
